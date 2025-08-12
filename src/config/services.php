@@ -31,4 +31,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'judge0' => [
+        'url' => env('JUDGE0_API_URL'),
+        'secret' => env('JUDGE0_API_SECRET'),
+    ],
+
 ];

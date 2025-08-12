@@ -2,10 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Correcao extends Model
 {
-    use HasFactory;
+
+    protected $table = 'correcao';
+    protected $fillable = [
+        'id',
+        'token',
+        'status_correcao_id',
+        'submissao_id',
+        'caso_teste_id'
+    ];
 }
