@@ -39,7 +39,7 @@ function App() {
   }, []);
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
+    <div className="w-full overflow-hidden">
       <div className="aurora pointer-events-none" aria-hidden />
 
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center justify-start px-6 pt-28 sm:pt-40">
