@@ -1,3 +1,14 @@
+/**
+ * Simula uma chamada de API para buscar uma atividade pelo id.
+ * @param activityId id da atividade
+ * @returns Promise<Activity | undefined>
+ */
+export async function getActivityById(
+  activityId: string
+): Promise<Activity | undefined> {
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  return fakePageActivities.items.find((a) => a.id === activityId);
+}
 import type { Activity, Page } from "../types";
 import { fakePageActivities } from "../mocks";
 
