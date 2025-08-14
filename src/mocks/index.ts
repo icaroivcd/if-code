@@ -139,7 +139,7 @@ export const fakeSubmissionReports: SubmissionReport[] = [
   {
     submissionId: "s1",
     activityTitle: "Soma Simples",
-    language: "python",
+    language: "C",
     dateSubmitted: "2025-08-13T10:00:00Z",
     overallStatus: "approved",
     testCases: fakeTestCaseResults,
@@ -148,7 +148,16 @@ export const fakeSubmissionReports: SubmissionReport[] = [
   {
     submissionId: "s2",
     activityTitle: "Fatorial",
-    language: "java",
+    language: "C",
+    dateSubmitted: "2025-08-12T15:30:00Z",
+    overallStatus: "partial",
+    testCases: fakeTestCaseResults,
+    compileLog: "Warning: variável não utilizada.",
+  },
+  {
+    submissionId: "s3",
+    activityTitle: "Números Primos",
+    language: "C",
     dateSubmitted: "2025-08-12T15:30:00Z",
     overallStatus: "partial",
     testCases: fakeTestCaseResults,
