@@ -6,6 +6,23 @@ use App\Facades\Judge0;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @OA\Schema(
+ *     schema="Submissao",
+ *     type="object",
+ *     title="Submissao Model",
+ *     description="Representa uma submissão de código de uma atividade.",
+ *     properties={
+ *         @OA\Property(property="id", type="integer", readOnly="true", example=1),
+ *         @OA\Property(property="data_submissao", type="string", format="date-time", readOnly="true", example="2023-10-27T10:00:00Z"),
+ *         @OA\Property(property="codigo", type="string", description="Código fonte submetido pelo usuário.", example="print('Hello, World!')"),
+ *         @OA\Property(property="linguagem", type="string", description="Linguagem de programação utilizada (definida no backend).", example="python"),
+ *         @OA\Property(property="atividade_id", type="integer", description="ID da atividade relacionada.", example=101),
+ *         @OA\Property(property="created_at", type="string", format="date-time", readOnly="true", example="2023-10-27T10:00:00Z"),
+ *         @OA\Property(property="updated_at", type="string", format="date-time", readOnly="true", example="2023-10-27T10:00:00Z")
+ *     }
+ * )
+ */
 class Submissao extends Model
 {
     protected $table = 'submissao';
@@ -45,5 +62,4 @@ class Submissao extends Model
         }
         return $resposta;
     }
-
 }
