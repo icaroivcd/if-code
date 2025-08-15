@@ -7,8 +7,8 @@ import {
   TableRow,
 } from "@/components/table";
 import { getAllActivities } from "@/services/ActivitiesService";
-import type { Activity } from "@/types";
-import { useEffect, useState } from "react";
+import type { Activity, Problem } from "@/types";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Calendar,
@@ -21,6 +21,8 @@ import {
   Filter,
   ArrowRight,
 } from "lucide-react";
+import { getAllProblems } from "@/services/ProblemsServices";
+import { useData } from "@/context/DataContext";
 
 // Configuração dos possíveis status de atividades para exibição e estilização
 const statusConfig = {
@@ -120,27 +122,11 @@ function LoadingSkeleton() {
 
 export default function Activities() {
   const navigate = useNavigate();
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const { activities, mapActivities, mapProblems, loading } = useData();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-
-  useEffect(() => {
-    // Busca as atividades da API ao montar o componente
-    const fetchActivities = async () => {
-      try {
-        setLoading(true);
-        const data = await getAllActivities();
-        setActivities(data.items);
-      } catch (error) {
-        console.error("Failed to fetch activities:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchActivities();
-  }, []);
 
   // Redireciona para o detalhe da atividade ao clicar na linha
   function redirectToActivity(activity: Activity) {
@@ -270,11 +256,11 @@ export default function Activities() {
                     <TableCell className="font-medium">
                       <div className="flex flex-col">
                         <span className="text-gray-900 group-hover:text-blue-600 transition-colors">
-                          {activity.title}
+                          {mapProblems.get(activity.problemId)?.title}
                         </span>
-                        {activity.description && (
+                        {mapProblems.get(activity.problemId)?.statement && (
                           <span className="text-sm text-gray-500 mt-1 line-clamp-1">
-                            {activity.description}
+                            {mapProblems.get(activity.problemId)?.statement}
                           </span>
                         )}
                       </div>

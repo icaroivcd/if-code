@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Activity, Submission } from "@/types";
+import type { Activity, Problem, Submission } from "@/types";
 import {
   Table,
   TableBody,
@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getAllProblems } from "@/services/ProblemsServices";
+import { useData } from "@/context/DataContext";
 
 // Configuração dos possíveis status das submissões (cor, ícone, etc)
 const statusConfig = {
@@ -177,16 +179,11 @@ function StatsCard({
 
 export default function Submissions() {
   const navigate = useNavigate();
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const { mapActivities, mapProblems, loading, submissions } = useData();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-
-  // Mapeia o id da atividade para o título dela (para exibir na tabela)
-  const mapActivitiesTitle = useMemo(() => {
-    return new Map(activities.map((activity) => [activity.id, activity.title]));
-  }, [activities]);
 
   // Calcula estatísticas rápidas sobre as submissões
   const stats = useMemo(() => {
@@ -201,58 +198,27 @@ export default function Submissions() {
     return { total, accepted, rejected, pending, acceptanceRate };
   }, [submissions]);
 
-  // Busca todas as submissões do usuário
-  async function fetchSubmissions() {
-    try {
-      const data = await getAllSubmissions();
-      setSubmissions(data);
-    } catch (error) {
-      console.error("Failed to fetch submissions:", error);
-    }
-  }
-
-  // Busca todas as atividades para mapear títulos
-  async function fetchActivities() {
-    try {
-      const data = await getAllActivities();
-      setActivities(data.items);
-    } catch (error) {
-      console.error("Failed to fetch activities:", error);
-    }
-  }
-
-  // Carrega dados ao montar componente
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        await Promise.all([fetchSubmissions(), fetchActivities()]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
   // Redireciona para o detalhe da submissão ao clicar na linha da tabela
   function redirectToSubmission(submission: Submission) {
     console.log("Redirecting to submission:", submission);
-    navigate(`/submissions/${submission.id}`);
+    navigate(`/submissions/${submission.activityId}/${submission.id}`);
   }
 
   // Atualiza os dados ao clicar em "Atualizar"
   async function refreshData() {
-    setLoading(true);
-    try {
-      await Promise.all([fetchSubmissions(), fetchActivities()]);
-    } finally {
-      setLoading(false);
-    }
+    // setLoading(true);
+    // try {
+    //   await Promise.all([fetchSubmissions()]);
+    // } finally {
+    //   setLoading(false);
+    // }
   }
 
   // Filtra submissões pelo termo de busca e filtro de status
   const filteredSubmissions = submissions.filter((submission) => {
-    const activityTitle = mapActivitiesTitle.get(submission.activityId) || "";
+    const activity = mapActivities.get(submission.activityId);
+    const problem = activity ? mapProblems.get(activity?.problemId) : undefined;
+    const activityTitle = problem?.title || "";
     const matchesSearch = activityTitle
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -409,9 +375,11 @@ export default function Submissions() {
             <TableBody>
               {sortedSubmissions.map((submission) => {
                 const dateInfo = formatDate(submission.dateSubmitted);
-                const activityTitle = mapActivitiesTitle.get(
-                  submission.activityId
-                );
+                const activity = mapActivities.get(submission.activityId);
+                const problem = activity
+                  ? mapProblems.get(activity.problemId)
+                  : undefined;
+                const activityTitle = problem?.title || "";
 
                 return (
                   <TableRow
@@ -426,7 +394,7 @@ export default function Submissions() {
                         </span>
                         {!activityTitle && (
                           <span className="text-xs text-red-500 mt-1">
-                            ID: {submission.activityId}
+                            ID: {submission.id}
                           </span>
                         )}
                       </div>

@@ -8,11 +8,17 @@ import {
 } from "@/components/table";
 import { getActivityById } from "@/services/ActivitiesService";
 import {
+  getResultBySubmissionId,
   getSubmissionById,
   getSubmissionReportBySubmissionId,
 } from "@/services/SubmissionsService";
-import type { Activity, Submission, SubmissionReport } from "@/types";
-import { useEffect, useState } from "react";
+import type {
+  Activity,
+  Submission,
+  SubmissionReport,
+  TestCaseResult,
+} from "@/types";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   ArrowLeft,
@@ -36,6 +42,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useData } from "@/context/DataContext";
 
 // Configuração dos possíveis status de execução dos testes de submissão
 const statusConfig = {
@@ -174,11 +181,12 @@ function LoadingSpinner() {
 
 interface TestCaseRowProps {
   testCase: any;
+  result: TestCaseResult | undefined;
   index: number;
 }
 
 // Linha da tabela de casos de teste, com exibição/ocultação de saída e copiar para clipboard
-function TestCaseRow({ testCase, index }: TestCaseRowProps) {
+function TestCaseRow({ testCase, index, result }: TestCaseRowProps) {
   const [showOutput, setShowOutput] = useState(false);
   const config =
     statusConfig[testCase.status as keyof typeof statusConfig] ||
@@ -199,10 +207,11 @@ function TestCaseRow({ testCase, index }: TestCaseRowProps) {
         </div>
       </TableCell>
       <TableCell>
-        <StatusBadge
+        {result?.status}
+        {/* <StatusBadge
           status={testCase.status as keyof typeof statusConfig}
           size="sm"
-        />
+        /> */}
       </TableCell>
       <TableCell>
         <div className="space-y-2">
@@ -302,10 +311,32 @@ export default function SubmissionsDetails() {
   const params = useParams();
   const navigate = useNavigate();
   const submissionId = params.submissionId;
-  const [selectedActivity, setSelectedActivity] = useState<Activity>();
-  const [submission, setSubmission] = useState<Submission>();
-  const [submissionReport, setSubmissionReport] = useState<SubmissionReport>();
+  const activityId = params.activityId;
+
+  const { mapActivities, mapProblems, mapSubmissions } = useData();
+
+  const [results, setResults] = useState<TestCaseResult[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const mapResultByTestId = useMemo(() => {
+    const map = new Map<number, TestCaseResult>();
+    results.forEach((result) => {
+      map.set(result.testCaseId, result);
+    });
+    return map;
+  }, [results]);
+
+  const selectedActivity = useMemo(() => {
+    return mapActivities.get(Number(activityId));
+  }, [activityId, mapActivities]);
+
+  const submission = useMemo(() => {
+    return mapSubmissions.get(Number(submissionId));
+  }, [submissionId, mapSubmissions]);
+
+  const selectedProblem = useMemo(() => {
+    return mapProblems.get(Number(selectedActivity?.problemId));
+  }, [selectedActivity, mapProblems]);
 
   useEffect(() => {
     // Busca detalhes da submissão, relatório e atividade relacionada
@@ -314,22 +345,13 @@ export default function SubmissionsDetails() {
 
       setLoading(true);
       try {
-        const submissionCall = getSubmissionById(submissionId);
-        const submissionReportCall =
-          getSubmissionReportBySubmissionId(submissionId);
+        const submissionResultCall = getResultBySubmissionId(
+          Number(submissionId)
+        );
 
-        const [submissionData, submissionReportData] = await Promise.all([
-          submissionCall,
-          submissionReportCall,
-        ]);
+        const [submissionResult] = await Promise.all([submissionResultCall]);
 
-        setSubmission(submissionData);
-        setSubmissionReport(submissionReportData);
-
-        if (submissionData) {
-          const activityData = await getActivityById(submissionData.activityId);
-          setSelectedActivity(activityData);
-        }
+        setResults(submissionResult);
       } catch (error) {
         console.error("Failed to fetch submission details:", error);
       } finally {
@@ -348,7 +370,7 @@ export default function SubmissionsDetails() {
   }
 
   // Exibe mensagem caso algum dado essencial não seja encontrado
-  if (!selectedActivity || !submission || !submissionReport) {
+  if (!selectedActivity || !submission) {
     return (
       <div className="max-w-7xl mx-auto p-6">
         <div className="text-center py-12">
@@ -372,21 +394,27 @@ export default function SubmissionsDetails() {
   const dueDate = formatDate(selectedActivity.dueDate);
 
   // Cálculo de estatísticas dos casos de teste
+  // const testStats = {
+  //   total: submissionReport.testCases.length,
+  //   passed: submissionReport.testCases.filter((tc) => tc.status === "passed")
+  //     .length,
+  //   failed: submissionReport.testCases.filter((tc) => tc.status !== "passed")
+  //     .length,
+  //   successRate:
+  //     submissionReport.testCases.length > 0
+  //       ? Math.round(
+  //           (submissionReport.testCases.filter((tc) => tc.status === "passed")
+  //             .length /
+  //             submissionReport.testCases.length) *
+  //             100
+  //         )
+  //       : 0,
+  // };
   const testStats = {
-    total: submissionReport.testCases.length,
-    passed: submissionReport.testCases.filter((tc) => tc.status === "passed")
-      .length,
-    failed: submissionReport.testCases.filter((tc) => tc.status !== "passed")
-      .length,
-    successRate:
-      submissionReport.testCases.length > 0
-        ? Math.round(
-            (submissionReport.testCases.filter((tc) => tc.status === "passed")
-              .length /
-              submissionReport.testCases.length) *
-              100
-          )
-        : 0,
+    total: 0,
+    passed: 0,
+    failed: 0,
+    successRate: 0,
   };
 
   return (
@@ -491,6 +519,14 @@ export default function SubmissionsDetails() {
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
+            <label className="text-sm font-medium text-gray-600">Titulo</label>
+            <div className="mt-1">
+              <div className="text-lg font-semibold text-gray-900">
+                {selectedProblem?.title || "Título não encontrado"}
+              </div>
+            </div>
+          </div>
+          <div>
             <label className="text-sm font-medium text-gray-600">
               Prazo de Entrega
             </label>
@@ -528,7 +564,7 @@ export default function SubmissionsDetails() {
         </div>
 
         <div className="p-6">
-          {submissionReport.testCases.length === 0 ? (
+          {selectedProblem?.testCases?.length === 0 ? (
             <div className="text-center py-8">
               <TestTube className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -570,10 +606,11 @@ export default function SubmissionsDetails() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {submissionReport.testCases.map((testCase, index) => (
+                  {selectedProblem?.testCases?.map((testCase, index) => (
                     <TestCaseRow
                       key={testCase.id}
                       testCase={testCase}
+                      result={mapResultByTestId.get(testCase.id)}
                       index={index}
                     />
                   ))}

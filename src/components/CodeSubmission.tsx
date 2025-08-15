@@ -13,12 +13,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Editor from "@monaco-editor/react";
+import { postSubmission } from "@/services/SubmissionsService";
+import type { Activity } from "@/types";
 
 /**
  * Componente de submissão de código com integração ao Monaco Editor.
  * Permite edição de código C, visualização em tela cheia e submissão.
  */
-export function CodeSubmissionComponent() {
+interface CodeSubmissionProps {
+  onSubmit: (code: string) => void;
+}
+
+export function CodeSubmissionComponent({ onSubmit }: CodeSubmissionProps) {
   // Estado para alternar entre modo normal e tela cheia
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -84,9 +90,8 @@ export function CodeSubmissionComponent() {
    * Função chamada ao enviar a submissão.
    * Adicione aqui a lógica real de envio para o backend.
    */
-  const handleSubmit = () => {
-    // Adicione a lógica de submissão aqui;
-    console.log("Submitting code:", codeValue);
+  const handleSubmit = async () => {
+    onSubmit(codeValue);
   };
 
   // ----- Renderização do modo tela cheia (fullscreen) -----
@@ -171,7 +176,7 @@ export function CodeSubmissionComponent() {
                 {/* Botão de submissão */}
                 <Button
                   onClick={handleSubmit}
-                  disabled={submitting || !codeValue.trim()}
+                  // disabled={submitting || !codeValue.trim()}
                   className="flex items-center gap-2"
                 >
                   {submitting ? (
@@ -277,7 +282,7 @@ export function CodeSubmissionComponent() {
 
           <Button
             onClick={handleSubmit}
-            disabled={submitting || !codeValue.trim()}
+            // disabled={submitting || !codeValue.trim()}
             className="flex items-center gap-2"
           >
             {submitting ? (
@@ -288,7 +293,7 @@ export function CodeSubmissionComponent() {
             ) : (
               <>
                 <Zap className="w-4 h-4 mr-2" />
-                Enviar Submissão
+                Enviar Submissãoa
               </>
             )}
           </Button>

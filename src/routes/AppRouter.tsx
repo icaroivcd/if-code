@@ -20,7 +20,10 @@ export default function AppRouter() {
           </Route>
           <Route path="submissions">
             <Route index element={<Submissions />} />
-            <Route path=":submissionId" element={<SubmissionsDetails />} />
+            <Route
+              path=":activityId/:submissionId"
+              element={<SubmissionsDetails />}
+            />
           </Route>
         </Route>
       </Routes>

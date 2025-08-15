@@ -7,53 +7,53 @@ export type SubmissionStatus =
 export type Language = "c" | "cpp" | "java" | "python";
 
 export type Activity = {
-  id: string;
-  problemId: string;
+  id: number;
+  problemId: number;
   title: string;
   dueDate: string; // ISO date string
   status: ActivityStatus;
 };
 
 export type Problem = {
-  id: string;
+  id: number;
   title: string;
   statement: string;
   timeLimitMs: number;
   memoryLimitKb: number;
+  testCases?: TestCase[];
 };
 
 export type Submission = {
-  id: string;
-  activityId: string;
+  id: number;
+  activityId: number;
   dateSubmitted: string; // ISO date string
   language: Language;
   status: SubmissionStatus;
 };
 
 export type Evaluation = {
-  id: string;
-  submissionId: string;
+  id: number;
+  submissionId: number;
   token: string;
   status: SubmissionStatus;
 };
 
 export type TestCase = {
-  id: string;
+  id: number;
   input: string;
   expectedOutput: string;
   private: boolean;
 };
 
 export type TestCaseResult = {
-  id: string;
-  input?: string;
-  expectedOutput: string;
-  actualOutput: string;
-  status: "passed" | "failed";
+  id: number;
+  testCaseId: number;
+  submissionId: number;
+  status: string;
 };
 
 export type SubmissionReport = {
-  submissionId: string;
+  submissionId: number;
   activityTitle: string;
   language: Language;
   dateSubmitted: string;

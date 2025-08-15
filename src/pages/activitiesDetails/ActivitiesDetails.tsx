@@ -9,9 +9,12 @@ import {
 } from "@/components/table";
 import { getAllActivities } from "@/services/ActivitiesService";
 import { getProblemById } from "@/services/ProblemsServices";
-import { getSubmissionsByActivityId } from "@/services/SubmissionsService";
+import {
+  getSubmissionsByActivityId,
+  postSubmission,
+} from "@/services/SubmissionsService";
 import type { Activity, Problem, Submission } from "@/types";
-import { useEffect, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   Calendar,
@@ -29,6 +32,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { CodeSubmissionComponent } from "../../components/CodeSubmission";
+import { useData } from "@/context/DataContext";
 
 // Configuração dos possíveis status das submissões (exibição e estilização)
 const statusConfig = {
@@ -125,62 +129,40 @@ function LoadingSpinner() {
 export default function ActivitiesDetails() {
   const params = useParams();
   const navigate = useNavigate();
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [selectedActivity, setSelectedActivity] = useState<Activity>();
-  const [selectedProblem, setSelectedProblem] = useState<Problem>();
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    mapActivities,
+    mapProblems,
+    loading,
+    submissions,
+    updateSubmissions,
+  } = useData();
+
   const activityId = params.id;
 
-  // Busca todas as atividades para encontrar a selecionada
-  const fetchActivities = async () => {
-    const data = await getAllActivities();
-    setActivities(data.items);
-  };
+  const [localLoading, setLocalLoading] = useState(false);
 
-  // Busca o problema relacionado à atividade
-  const fetchProblem = async (activity: Activity) => {
-    const data = await getProblemById(activity.problemId);
-    setSelectedProblem(data);
-  };
+  const selectedActivity = useMemo(() => {
+    return activityId ? mapActivities.get(Number(activityId)) : undefined;
+  }, [activityId, mapActivities]);
+
+  const selectedProblem = useMemo(() => {
+    return selectedActivity
+      ? mapProblems.get(selectedActivity.problemId)
+      : undefined;
+  }, [selectedActivity, mapProblems]);
 
   // Busca as submissões da atividade
-  const fetchSubmissions = async (activity: Activity) => {
-    const data = await getSubmissionsByActivityId(activity.id);
-    setSubmissions(data);
-  };
-
-  // Carrega a lista de atividades ao montar o componente
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        await fetchActivities();
-      } catch (error) {
-        console.error("Failed to fetch activities:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
-  // Seleciona a atividade pelo id da rota quando as atividades são carregadas
-  useEffect(() => {
-    if (activityId) {
-      setSelectedActivity(
-        activities.find((activity) => activity.id === activityId.toString())
-      );
-    }
-  }, [activityId, activities]);
+  // const fetchSubmissions = async (activity: Activity) => {
+  //   const data = await getSubmissionsByActivityId(activity.id);
+  //   setSubmissions(data);
+  // };
 
   // Quando a atividade selecionada muda, busca o problema e as submissões
-  useEffect(() => {
-    if (selectedActivity) {
-      fetchProblem(selectedActivity);
-      fetchSubmissions(selectedActivity);
-    }
-  }, [selectedActivity]);
+  // useEffect(() => {
+  //   if (selectedActivity) {
+  //     fetchSubmissions(selectedActivity);
+  //   }
+  // }, [selectedActivity]);
 
   // Redireciona para o detalhe da submissão ao clicar na linha da tabela
   function redirectToSubmission(submission: Submission) {
@@ -188,7 +170,26 @@ export default function ActivitiesDetails() {
     navigate(`/submissions/${submission.id}`);
   }
 
-  if (loading) {
+  async function handleSubmit(code: string, activityId: number) {
+    try {
+      setLocalLoading(true);
+      console.log("Submitting code:", code);
+      const response = await postSubmission({
+        code: code,
+        activityId: activityId,
+      });
+      await updateSubmissions();
+      console.log("Submission response:", response);
+      navigate(`/submissions`);
+    } catch (error) {
+      alert("Erro ao submeter o código. Tente novamente.");
+      console.error("Error submitting code:", error);
+    } finally {
+      setLocalLoading(false);
+    }
+  }
+
+  if (loading || localLoading) {
     return (
       <div className="max-w-7xl mx-auto p-6">
         <LoadingSpinner />
@@ -198,6 +199,7 @@ export default function ActivitiesDetails() {
 
   // Se não encontrar atividade ou problema, mostra tela em branco
   if (selectedActivity === undefined || selectedProblem === undefined) {
+    console.warn("Atividade ou problema não encontrado");
     return <div className="max-w-7xl mx-auto p-6"></div>;
   }
 
@@ -222,12 +224,8 @@ export default function ActivitiesDetails() {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2">
-              {selectedActivity.title}
-            </h1>
-            <p className="text-blue-100 text-lg">
-              {selectedActivity.description}
-            </p>
+            <h1 className="text-3xl font-bold mb-2">{selectedProblem.title}</h1>
+            <p className="text-blue-100 text-lg">{selectedProblem.statement}</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -287,7 +285,9 @@ export default function ActivitiesDetails() {
           </div>
         </div>
         {/* Componente responsável pela caixa de texto e submissão do código*/}
-        <CodeSubmissionComponent />
+        <CodeSubmissionComponent
+          onSubmit={(code) => handleSubmit(code, selectedActivity.id)}
+        />
       </div>
 
       {/* Histórico de submissões */}
@@ -306,9 +306,9 @@ export default function ActivitiesDetails() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() =>
-                selectedActivity && fetchSubmissions(selectedActivity)
-              }
+              // onClick={() =>
+              //   // selectedActivity && fetchSubmissions(selectedActivity)
+              // }
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               Atualizar
