@@ -85,4 +85,20 @@ class Judge0ApiService
 
         return $response['submissions'];
     }
+
+    /**
+    * Busca o status de uma submissão com base no token
+    * token - a chave da sumbissão
+    *
+    * @param string $token
+    * @return array
+    * @throws RequestException
+    */
+    public function getStatus(string $token){
+        $url = '/submissions/' . $token;
+        $response = $this->client->get($url);
+        $response->throw();
+
+        return $response['status'];
+    }
 }
