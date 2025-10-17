@@ -1,0 +1,15 @@
+src/.git
+
+src/.gitignore
+src/.gitattributes
+src/.editorconfig
+
+src/vendor/
+
+src/.env
+
+src/storage/logs/
+src/storage/framework/
+
+.DS_Store
+Thumbs.db
