@@ -61,7 +61,7 @@ Siga estes passos para estruturar corretamente seu ambiente local.
 
 ### b. Arquivos de Configuração
 
-Copie os seguintes arquivos dessa **[pasta do drive]([https://git-scm.com/downloads](https://drive.google.com/drive/folders/14nPSCOsxm1RkzN-rDTMaXMD-eoaDHBtA?usp=drive_link))** para a **raiz da sua pasta principal (`ifcodes-dev/`)**:
+Copie os seguintes arquivos dessa **[pasta do drive](https://drive.google.com/drive/folders/14nPSCOsxm1RkzN-rDTMaXMD-eoaDHBtA?usp=drive_link)** para a **raiz da sua pasta principal (`ifcodes-dev/`)**:
 
 * `docker-compose.yml`
 * `init-backend-db.sh`
