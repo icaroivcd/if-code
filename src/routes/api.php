@@ -4,6 +4,7 @@ use App\Http\Controllers\AtividadeController;
 use App\Http\Controllers\CorrecaoController;
 use App\Http\Controllers\ProblemaController;
 use App\Http\Controllers\SubmissaoController;
+use App\Http\Controllers\ProfessorController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
@@ -20,6 +21,7 @@ use Illuminate\Http\Request;
 
 Route::apiResource('atividades', AtividadeController::class);
 Route::apiResource('problemas', ProblemaController::class);
+Route::apiResource('professores', ProfessorController::class);
 Route::apiResource('submissoes', SubmissaoController::class)
 ->except('update', 'destroy')
 ->parameters(['submissoes' => 'submissao']);
