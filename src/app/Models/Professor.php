@@ -13,12 +13,13 @@ class Professor extends Model
 
 
     protected $fillable = [
+        'id',
         'area_atuacao',
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id');
+        return $this->belongsTo(User::class, 'id', 'id');
     }
 
     // public function turmas()
