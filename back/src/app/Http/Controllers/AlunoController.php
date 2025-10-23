@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Aluno;
 use App\Http\Resources\AlunoResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,12 @@ class AlunoController extends Controller
      */
     public function index()
     {
-        $alunos = User::whereHas('aluno')->latest()->paginate(15);
+        // Busca usuários que possuem uma entrada correspondente na tabela 'alunos'
+        $alunos = User::join('alunos', 'users.id', '=', 'alunos.user_id')
+            ->select('users.*') // Garante que estamos selecionando apenas os campos de users
+            ->latest('users.created_at') // Especifica a tabela para evitar ambiguidade
+            ->paginate(15);
+            
         return AlunoResource::collection($alunos);
     }
 
@@ -55,11 +61,24 @@ class AlunoController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'curso_id' => 'required|exists:cursos,id',
+            'matricula' => 'nullable|string|max:255|unique:alunos,matricula',
         ]);
 
         $user = DB::transaction(function () use ($validated) {
-            $user = User::create($validated);
-            $user->aluno()->create(['curso_id' => $validated['curso_id']]);
+            // Primeiro cria o User
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+            ]);
+            
+            // Depois cria o Aluno
+            Aluno::create([
+                'user_id' => $user->id,
+                'curso_id' => $validated['curso_id'],
+                'matricula' => $validated['matricula'] ?? null,
+            ]);
+            
             return $user;
         });
 
@@ -93,7 +112,9 @@ class AlunoController extends Controller
      */
     public function show(User $aluno)
     {
-        if (!$aluno->aluno) {
+        // Verifica se o usuário tem um registro de aluno associado
+        $alunoRecord = Aluno::where('user_id', $aluno->id)->first();
+        if (!$alunoRecord) {
             return response()->json(['message' => 'Aluno não encontrado'], 404);
         }
         return new AlunoResource($aluno);
@@ -127,7 +148,9 @@ class AlunoController extends Controller
      */
     public function update(Request $request, User $aluno)
     {
-        if (!$aluno->aluno) {
+        // Verifica se o usuário tem um registro de aluno associado
+        $alunoRecord = Aluno::where('user_id', $aluno->id)->first();
+        if (!$alunoRecord) {
             return response()->json(['message' => 'Aluno não encontrado'], 404);
         }
 
@@ -136,12 +159,27 @@ class AlunoController extends Controller
             'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($aluno->id)],
             'password' => 'nullable|string|min:8|confirmed',
             'curso_id' => 'sometimes|required|exists:cursos,id',
+            'matricula' => ['sometimes', 'nullable', 'string', 'max:255', Rule::unique('alunos')->ignore($alunoRecord->user_id, 'user_id')],
         ]);
 
-        DB::transaction(function () use ($aluno, $validated, $request) {
-            $aluno->update($request->only('name', 'email', 'password'));
+        DB::transaction(function () use ($aluno, $alunoRecord, $validated, $request) {
+            // Atualiza dados do User
+            $userData = $request->only('name', 'email');
+            if ($request->filled('password')) {
+                $userData['password'] = $validated['password'];
+            }
+            $aluno->update($userData);
+            
+            // Atualiza dados do Aluno
+            $alunoData = [];
             if ($request->has('curso_id')) {
-                $aluno->aluno->update(['curso_id' => $validated['curso_id']]);
+                $alunoData['curso_id'] = $validated['curso_id'];
+            }
+            if ($request->has('matricula')) {
+                $alunoData['matricula'] = $validated['matricula'];
+            }
+            if (!empty($alunoData)) {
+                $alunoRecord->update($alunoData);
             }
         });
 
@@ -171,11 +209,18 @@ class AlunoController extends Controller
      */
     public function destroy(User $aluno)
     {
-        if (!$aluno->aluno) {
+        // Verifica se o usuário tem um registro de aluno associado
+        $alunoRecord = Aluno::where('user_id', $aluno->id)->first();
+        if (!$alunoRecord) {
             return response()->json(['message' => 'Aluno não encontrado'], 404);
         }
 
-        $aluno->delete();
+        DB::transaction(function () use ($aluno, $alunoRecord) {
+            // Primeiro deleta o registro de Aluno
+            $alunoRecord->delete();
+            // Depois deleta o User
+            $aluno->delete();
+        });
 
         return response()->noContent(); // HTTP 204: No Content
     }

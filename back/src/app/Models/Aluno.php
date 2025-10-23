@@ -18,7 +18,7 @@ class Aluno extends Model
     // Informa ao Eloquent qual é a chave primária
     protected $primaryKey = 'user_id';
 
-    protected $fillable = ['user_id', 'curso_id'];
+    protected $fillable = ['user_id', 'curso_id', 'matricula'];
 
     // Relacionamento: Um Aluno pertence a um User
     public function user(): BelongsTo

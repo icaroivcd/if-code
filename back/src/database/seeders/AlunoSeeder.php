@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Aluno;
 use Illuminate\Support\Facades\DB;
 
 class AlunoSeeder extends Seeder
@@ -21,9 +22,9 @@ class AlunoSeeder extends Seeder
                 'email' => 'ana.carolina@email.com',
                 'password' => 'password123'
             ]);
-            $user1->aluno()->create([
-                'curso_id' => 1,
+            Aluno::create([
                 'user_id' => $user1->id,
+                'curso_id' => 1,
                 'matricula' => '2023001'
             ]);
 
@@ -33,9 +34,9 @@ class AlunoSeeder extends Seeder
                 'email' => 'bruno.dias@email.com',
                 'password' => 'password123'
             ]);
-            $user2->aluno()->create([
-                'curso_id' => 2,
+            Aluno::create([
                 'user_id' => $user2->id,
+                'curso_id' => 2,
                 'matricula' => '2023002'
             ]);
 
@@ -45,9 +46,9 @@ class AlunoSeeder extends Seeder
                 'email' => 'carlos.eduardo@email.com',
                 'password' => 'password123'
             ]);
-            $user3->aluno()->create([
-                'curso_id' => 3,
+            Aluno::create([
                 'user_id' => $user3->id,
+                'curso_id' => 3,
                 'matricula' => '2023003'
             ]);
         });
