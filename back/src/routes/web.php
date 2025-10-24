@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,5 +18,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return ['Laravel' => app()->version()];
 });
+
+// Route::middleware('auth')->get('/api/user', function (Request $request) {
+//     return $request->user();
+// });
+// Route::middleware('auth:sanctum')->post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('guest');
+Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroy']);
 
 require __DIR__.'/auth.php';
