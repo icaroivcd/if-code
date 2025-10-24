@@ -5,6 +5,7 @@ use App\Http\Controllers\CorrecaoController;
 use App\Http\Controllers\ProblemaController;
 use App\Http\Controllers\SubmissaoController;
 use App\Http\Controllers\ProfessorController;
+use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
@@ -30,4 +31,10 @@ Route::get('/correcao/busca-por-submissao/{submissao}', [CorrecaoController::cla
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', [AuthController::class, 'user']);
+    Route::get('/user/roles', [AuthController::class, 'roles']);
+    Route::get('/user/permissions', [AuthController::class, 'permissions']);
 });
