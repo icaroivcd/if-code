@@ -16,7 +16,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const token = localStorage.getItem("auth_token");
-        console.log('token:', token);
         if (token) {
             axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
                 headers: {

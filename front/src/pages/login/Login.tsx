@@ -40,8 +40,15 @@ export default function Login() {
         if (emailErr || passwordErr) return;
 
         try {
-            await login({ email, password });
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/user`, { withCredentials: true });
+            const token = await login({ email, password });
+            localStorage.setItem("auth_token", token);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
+                withCredentials: true,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json"
+                }
+            });
             setUser(res.data);
             navigate("/home");
         } catch (error: any) {
@@ -49,6 +56,7 @@ export default function Login() {
                 setError("Email ou Senha inválidos");
             } else {
                 setError(`Um erro inesperado ocorreu: ${error.message}`);
+                console.log('erro: ', error);
             }
         }
         setEmail("");
