@@ -15,10 +15,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get(`${import.meta.env.VITE_API_URL}/api/user`, { withCredentials: true })
+        const token = localStorage.getItem("auth_token");
+        console.log('token:', token);
+        if (token) {
+            axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json"
+                }
+            })
             .then(res => setUser(res.data))
             .catch(() => setUser(null))
             .finally(() => setLoading(false));
+        } else {
+            setLoading(false);
+        }
     }, []);
 
     return (
