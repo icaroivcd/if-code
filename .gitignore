@@ -1,3 +1,5 @@
 .vagrant
 passwords.txt
+Vagrantfile
+judge0.conf
 .env
