@@ -88,19 +88,19 @@ export default function ChangePassword() {
         <>
             {error && <Notification type="error" message={error} onClose={() => setError(null)} />}
             {success && <Notification type="success" message={success} onClose={() => setSuccess(null)} />}
-            <div className="w-full min-h-screen flex flex-col bg-white p-4">
-                <button
-                    type="button"
-                    onClick={() => navigate(-1)}
-                    className="mb-8 p-2 rounded-lg hover:bg-gray-100 transition-colors inline-flex items-center gap-2 w-fit"
-                    title="Voltar"
-                >
-                    <ArrowLeft className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-600">Voltar</span>
-                </button>
+            <div className="w-full min-h-screen flex justify-center items-start bg-white p-4 pt-20">
+                <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1 mb-6 transition-colors"
+                        title="Voltar"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Voltar</span>
+                    </button>
 
-                <div className="w-full max-w-md mx-auto">
-                    <h2 className="text-2xl font-bold text-center mb-8 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
                         Alterar Senha
                     </h2>
 
@@ -123,7 +123,7 @@ export default function ChangePassword() {
                                 onBlur={e => setCurrentPasswordError(validateCurrentPassword(e.target.value))}
                             />
                             <span
-                                className="absolute right-3 top-9 cursor-pointer select-none text-gray-500"
+                                className="absolute right-3 top-9 cursor-pointer select-none text-gray-500 hover:text-gray-700 transition-colors"
                                 onClick={() => setShowCurrentPassword(v => !v)}
                                 title={showCurrentPassword ? "Ocultar senha" : "Mostrar senha"}
                             >
@@ -156,7 +156,7 @@ export default function ChangePassword() {
                                 onBlur={e => setNewPasswordError(validateNewPassword(e.target.value))}
                             />
                             <span
-                                className="absolute right-3 top-9 cursor-pointer select-none text-gray-500"
+                                className="absolute right-3 top-9 cursor-pointer select-none text-gray-500 hover:text-gray-700 transition-colors"
                                 onClick={() => setShowNewPassword(v => !v)}
                                 title={showNewPassword ? "Ocultar senha" : "Mostrar senha"}
                             >
@@ -189,7 +189,7 @@ export default function ChangePassword() {
                                 onBlur={e => setConfirmPasswordError(validateConfirmPassword(e.target.value, newPassword))}
                             />
                             <span
-                                className="absolute right-3 top-9 cursor-pointer select-none text-gray-500"
+                                className="absolute right-3 top-9 cursor-pointer select-none text-gray-500 hover:text-gray-700 transition-colors"
                                 onClick={() => setShowConfirmPassword(v => !v)}
                                 title={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
                             >
@@ -207,16 +207,7 @@ export default function ChangePassword() {
 
                         <button 
                             type="submit" 
-                            className="w-full
-                                bg-gradient-to-r from-purple-600 to-pink-600
-                                rounded-lg
-                                text-white
-                                cursor-pointer
-                                hover:from-purple-700 hover:to-pink-700
-                                transition
-                                duration-300
-                                p-3
-                                font-medium"
+                            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-lg text-white font-semibold p-3 transition duration-300"
                         >
                             Alterar Senha
                         </button>
