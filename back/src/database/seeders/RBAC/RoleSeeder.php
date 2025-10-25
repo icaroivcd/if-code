@@ -18,5 +18,8 @@ class RoleSeeder extends Seeder
 
         //Professor Role
         Role::firstOrCreate(['name' => 'professor']);
+
+        //Student Role
+        Role::firstOrCreate(['name' => 'student']);
     }
 }
