@@ -8,7 +8,6 @@ use App\Http\Controllers\ProfessorController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\AlunoController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,22 +20,24 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::apiResource('atividades', AtividadeController::class);
-Route::apiResource('problemas', ProblemaController::class);
-Route::apiResource('professores', ProfessorController::class);
-Route::apiResource('submissoes', SubmissaoController::class)
-->except('update', 'destroy')
-->parameters(['submissoes' => 'submissao']);
-
-Route::apiResource('alunos', AlunoController::class);
-Route::get('/correcao/busca-por-submissao/{submissao}', [CorrecaoController::class, 'buscaPorSubmissao']);
-
-Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-    return $request->user();
-});
-
+// Todas as rotas da API exigem autenticação via Sanctum
 Route::middleware('auth:sanctum')->group(function () {
+    
+    // Rotas de informações do usuário autenticado
     Route::get('/user', [AuthController::class, 'user']);
     Route::get('/user/roles', [AuthController::class, 'roles']);
     Route::get('/user/permissions', [AuthController::class, 'permissions']);
+    
+    // Rotas de recursos da API
+    Route::apiResource('atividades', AtividadeController::class);
+    Route::apiResource('problemas', ProblemaController::class);
+    Route::apiResource('professores', ProfessorController::class);
+    Route::apiResource('alunos', AlunoController::class);
+    
+    Route::apiResource('submissoes', SubmissaoController::class)
+        ->except('update', 'destroy')
+        ->parameters(['submissoes' => 'submissao']);
+    
+    // Rotas de correção
+    Route::get('/correcao/busca-por-submissao/{submissao}', [CorrecaoController::class, 'buscaPorSubmissao']);
 });
