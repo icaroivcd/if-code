@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router";
-import { Menu, X, Code2, LogOut } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, Code2, LogOut, KeyRound, User, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -25,7 +25,9 @@ const navigationItems: NavigationItem[] = [
 export default function Header() {
   // Estado para controlar o menu mobile aberto/fechado
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [error, setError] = useState(false)
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [error, setError] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Hook para saber qual rota está ativa
   const location = useLocation();
@@ -39,6 +41,28 @@ export default function Header() {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  // Alterna o menu de perfil
+  const toggleProfileMenu = () => {
+    setIsProfileMenuOpen(!isProfileMenuOpen);
+  };
+
+  // Fecha o menu de perfil ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    if (isProfileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileMenuOpen]);
 
   // Retorna se a rota está ativa
   const isActiveRoute = (path: string) => {
@@ -120,13 +144,57 @@ export default function Header() {
                 ))}
               </NavigationMenuList>
             </NavigationMenu>
+
+            {/* Botões de ação (desktop) */}
+            <div className="hidden md:flex items-center gap-3">
+              {/* Menu de perfil dropdown */}
+              <div className="relative" ref={profileMenuRef}>
                 <button
-                onClick={handleLogout}
-                className="flex items-center gap-1 px-3 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 cursor-pointer"
-              >
-                <LogOut className="w-5 h-5" />
-                Sair
-              </button>
+                  onClick={toggleProfileMenu}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  aria-expanded={isProfileMenuOpen}
+                  aria-haspopup="true"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-purple-500 flex items-center justify-center shadow-md">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-gray-900 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown menu */}
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-purple-100 py-2 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900">Meu Perfil</p>
+                      <p className="text-xs text-gray-500 mt-1">Gerencie sua conta</p>
+                    </div>
+                    
+                    <div className="py-2">
+                      <Link
+                        to="/change-password"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                      >
+                        <KeyRound className="w-4 h-4" />
+                        <span>Alterar Senha</span>
+                      </Link>
+                      
+                      <button
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          handleLogout();
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Sair</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Botão hamburguer para abrir/fechar menu mobile */}
             <div className="md:hidden">
               <button
@@ -150,7 +218,7 @@ export default function Header() {
           {/* Menu mobile (aparece só no mobile) W.I.P*/}
           <div
             className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-              isMobileMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+              isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
             <div className="border-t border-gray-200/50 bg-white/95 backdrop-blur-sm">
@@ -173,6 +241,41 @@ export default function Header() {
                     )}
                   </Link>
                 ))}
+                
+                {/* Menu de perfil no mobile */}
+                <div className="pt-2 mt-2 border-t border-purple-100">
+                  <div className="px-4 py-3 rounded-lg mx-2 mb-3 border border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-purple-500 flex items-center justify-center shadow-md">
+                        <User className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Meu Perfil</p>
+                        <p className="text-xs text-gray-500">Gerencie sua conta</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Link
+                    to="/change-password"
+                    className="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    <KeyRound className="w-5 h-5" />
+                    <span>Alterar Senha</span>
+                  </Link>
+                  
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Sair</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
