@@ -68,3 +68,14 @@ export type Page<T> = {
   pageSize: number;
   total: number;
 };
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+}
+
+export type User = {
+  id: number;
+  name: string;
+  email: string;
+}
