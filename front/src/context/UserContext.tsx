@@ -17,13 +17,27 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const token = localStorage.getItem("auth_token");
         if (token) {
-            axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json"
-                }
+            // Fetch user data and roles
+            Promise.all([
+                axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json"
+                    }
+                }),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/user/roles`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json"
+                    }
+                })
+            ])
+            .then(([userRes, rolesRes]) => {
+                setUser({
+                    ...userRes.data,
+                    roles: rolesRes.data.roles || []
+                });
             })
-            .then(res => setUser(res.data))
             .catch(() => setUser(null))
             .finally(() => setLoading(false));
         } else {
