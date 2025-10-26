@@ -11,6 +11,11 @@ class Professor extends Model
 
     protected $table = "professor";
 
+    // Informa ao Eloquent que a chave primária não é auto-incrementável
+    public $incrementing = false;
+
+    // Informa ao Eloquent qual é a chave primária
+    protected $primaryKey = 'id';
 
     protected $fillable = [
         'id',

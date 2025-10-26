@@ -9,6 +9,7 @@ import RequireRole from "@/pages/RequireRole";
 import Unauthorized from "@/pages/Unauthorized";
 import Submissions from "@/pages/submissions/Submissions";
 import Students from "@/pages/students/Students";
+import Teachers from "@/pages/teachers/Teachers";
 import SubmissionsDetails from "@/pages/submissionsDetails/SubmissionsDetails";
 import { BrowserRouter, Route, Routes } from "react-router";
 
@@ -37,6 +38,7 @@ export default function AppRouter() {
             </Route>
             <Route element={<RequireRole allowedRoles={["admin"]} />}>
               <Route path="students" element={<Students />} />
+              <Route path="teachers" element={<Teachers />} />
             </Route>
           </Route>
         </Route>
