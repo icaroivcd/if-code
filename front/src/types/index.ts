@@ -80,3 +80,17 @@ export type User = {
   email: string;
   roles: string[];
 }
+export type Student = {
+  id: number;
+  name: string;
+  email: string;
+  matricula: string | number;
+  curso_id?: number;
+  curso?: {
+    id: number;
+    nome: string;
+  };
+  created_at?: string;
+  password?: string;
+  password_confirmation?: string;
+}
