@@ -6,92 +6,219 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Professor;
 use App\Models\User;
+use App\Http\Resources\ProfessorResource;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ProfessorController extends Controller
 {
-    public function __construct()
-    {
-        $this->authorizeResource(Professor::class, 'professor');
-    }
 
+    /**
+     * @OA\Get(
+     *     path="/api/professores",
+     *     summary="Lista todos os professores",
+     *     tags={"Professores"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Operação bem-sucedida",
+     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/ProfessorResource"))
+     *     )
+     * )
+     */
     public function index()
     {
-        $professores = Professor::with('user')->get();
+        // Busca usuários que possuem uma entrada correspondente na tabela 'professor'
+        $professores = User::join('professor', 'users.id', '=', 'professor.id')
+            ->select('users.*')
+            ->latest('users.created_at')
+            ->paginate(15);
 
-        return response()->json($professores, 200);
+        return ProfessorResource::collection($professores);
     }
 
 
+    /**
+     * @OA\Post(
+     *     path="/api/professores",
+     *     summary="Cria um novo professor",
+     *     tags={"Professores"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/StoreProfessorRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Professor criado com sucesso",
+     *         @OA\JsonContent(ref="#/components/schemas/ProfessorResource")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erro de validação"
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
-        try {
-            DB::beginTransaction();
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'area_atuacao' => 'required|string|max:100',
+        ]);
 
+        $user = DB::transaction(function () use ($validated) {
+            // Primeiro cria o User
             $user = User::create([
-                'name' => $request->name,
-                'email' => strtolower($request->email),
-                'password' => Hash::make($request->password),
+                'name' => $validated['name'],
+                'email' => strtolower($validated['email']),
+                'password' => $validated['password'],
             ]);
 
-            $professor = Professor::create([
+            // Depois cria o Professor
+            Professor::create([
                 'id' => $user->id,
-                'area_atuacao' => $request->area_atuacao,
+                'area_atuacao' => $validated['area_atuacao'],
             ]);
 
+            // Atribui a role de professor
             $user->assignRole('professor');
-            DB::commit();
+
+            return $user;
+        });
+
+        return (new ProfessorResource($user))
+            ->response()
+            ->setStatusCode(201); // HTTP 201: Created
+    }
 
 
-            return response()->json($professor->load('user'), 201);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Erro ao criar professor', 'details' => $e->getMessage()], 500);
+    /**
+     * @OA\Put(
+     *     path="/api/professores/{id}",
+     *     summary="Atualiza um professor existente",
+     *     tags={"Professores"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UpdateProfessorRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Professor atualizado com sucesso",
+     *         @OA\JsonContent(ref="#/components/schemas/ProfessorResource")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Professor não encontrado"
+     *     )
+     * )
+     */
+    public function update(Request $request, User $professor)
+    {
+        // Verifica se o usuário tem um registro de professor associado
+        $professorRecord = Professor::where('id', $professor->id)->first();
+        if (!$professorRecord) {
+            return response()->json(['message' => 'Professor não encontrado'], 404);
         }
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'email' => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($professor->id)],
+            'password' => 'nullable|string|min:8|confirmed',
+            'area_atuacao' => 'sometimes|required|string|max:100',
+        ]);
+
+        DB::transaction(function () use ($professor, $professorRecord, $validated, $request) {
+            // Atualiza dados do User
+            $userData = $request->only('name', 'email');
+            if ($request->filled('password')) {
+                $userData['password'] = $validated['password'];
+            }
+            $professor->update($userData);
+
+            // Atualiza dados do Professor
+            if ($request->has('area_atuacao')) {
+                $professorRecord->update(['area_atuacao' => $validated['area_atuacao']]);
+            }
+        });
+
+        return new ProfessorResource($professor->fresh());
     }
 
-
-    public function update(Request $request, $id)
+    /**
+     * @OA\Get(
+     *     path="/api/professores/{id}",
+     *     summary="Busca um professor pelo ID",
+     *     tags={"Professores"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do professor",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Operação bem-sucedida",
+     *         @OA\JsonContent(ref="#/components/schemas/ProfessorResource")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Professor não encontrado"
+     *     )
+     * )
+     */
+    public function show(User $professor)
     {
-        $professor = Professor::findOrFail($id);
-        $user = User::findOrFail($professor->id);
-
-
-        try {
-            DB::beginTransaction();
-
-            $professor->area_atuacao = $request->area_atuacao ?? $professor->area_atuacao;
-            $professor->save();
-
-            $user->name = $request->name ?? $user->name;
-            $user->email = isset($request->email) ? strtolower($request->email) : $user->email;
-            $user->save();
-
-            DB::commit();
-
-
-            return response()->json($professor->load('user'), 200);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Erro ao atualizar professor', 'details' => $e->getMessage()], 500);
+        // Verifica se o usuário tem um registro de professor associado
+        $professorRecord = Professor::where('id', $professor->id)->first();
+        if (!$professorRecord) {
+            return response()->json(['message' => 'Professor não encontrado'], 404);
         }
+        return new ProfessorResource($professor);
     }
 
-    public function show($id)
+    /**
+     * @OA\Delete(
+     *     path="/api/professores/{id}",
+     *     summary="Deleta um professor",
+     *     tags={"Professores"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Professor deletado com sucesso"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Professor não encontrado"
+     *     )
+     * )
+     */
+    public function destroy(User $professor)
     {
-        $professor = Professor::findOrFail($id);
+        // Verifica se o usuário tem um registro de professor associado
+        $professorRecord = Professor::where('id', $professor->id)->first();
+        if (!$professorRecord) {
+            return response()->json(['message' => 'Professor não encontrado'], 404);
+        }
 
-        return response()->json($professor->load('user'), 200);
-    }
+        DB::transaction(function () use ($professor, $professorRecord) {
+            // Primeiro deleta o registro de Professor
+            $professorRecord->delete();
+            // Depois deleta o User
+            $professor->delete();
+        });
 
-    public function destroy($id)
-    {
-        $professor = Professor::findOrFail($id);
-        $user = User::findOrFail($id);
-
-        $professor->delete();
-        $user->delete();
-
-        return response()->json(null, 204);
+        return response()->noContent(); // HTTP 204: No Content
     }
 }
