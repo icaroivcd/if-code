@@ -76,7 +76,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({
       } finally {
         setLoading(false);
       }
-      console.log("buscou");
     };
 
     fetchData();

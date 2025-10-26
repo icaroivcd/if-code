@@ -21,10 +21,11 @@ const navigationItems: NavigationItem[] = [
   { to: "/home", label: "Dashboard" },
   { to: "/activities", label: "Atividades" },
   { to: "/submissions", label: "Submissões" },
-  { 
+  {
     label: "Gerenciar",
     submenu: [
-      { to: "/students", label: "Gerenciar Alunos" }
+      { to: "/students", label: "Gerenciar Alunos" },
+      { to: "/teachers", label: "Gerenciar Professores" }
     ]
   },
 ];

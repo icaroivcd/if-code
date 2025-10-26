@@ -94,3 +94,13 @@ export type Student = {
   password?: string;
   password_confirmation?: string;
 }
+
+export type Professor = {
+  id: number;
+  name: string;
+  email: string;
+  area_atuacao: string;
+  created_at?: string;
+  password?: string;
+  password_confirmation?: string;
+}
