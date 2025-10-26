@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router";
-import { Menu, X, Code2, LogOut } from "lucide-react";
+import { Menu, X, Code2, LogOut, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import {
   NavigationMenu,
@@ -12,20 +12,28 @@ import Notification from "./Notification";
 
 // Define as rotas de navegação do menu
 interface NavigationItem {
-  to: string;
+  to?: string;
   label: string;
+  submenu?: { to: string; label: string }[];
 }
 
 const navigationItems: NavigationItem[] = [
   { to: "/home", label: "Dashboard" },
   { to: "/activities", label: "Atividades" },
   { to: "/submissions", label: "Submissões" },
+  { 
+    label: "Gerenciar",
+    submenu: [
+      { to: "/students", label: "Gerenciar Alunos" }
+    ]
+  },
 ];
 
 export default function Header() {
   // Estado para controlar o menu mobile aberto/fechado
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [error, setError] = useState(false)
+  const [error, setError] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // Hook para saber qual rota está ativa
   const location = useLocation();
@@ -101,21 +109,66 @@ export default function Header() {
             <NavigationMenu className="hidden md:flex">
               <NavigationMenuList className="flex space-x-1">
                 {navigationItems.map((item) => (
-                  <NavigationMenuItem key={item.to}>
-                    <Link
-                      to={item.to}
-                      className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                        isActiveRoute(item.to)
-                          ? "text-blue-600 bg-blue-50 shadow-sm"
-                          : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {item.label}
-                      {/* Barra decorativa se está ativo */}
-                      {isActiveRoute(item.to) && (
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
-                      )}
-                    </Link>
+                  <NavigationMenuItem key={item.label}>
+                    {item.submenu ? (
+                      // Item com dropdown
+                      <div className="relative dropdown-container">
+                        <button
+                          className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center gap-1 ${
+                            item.submenu.some(sub => isActiveRoute(sub.to))
+                              ? "text-blue-600 bg-blue-50 shadow-sm"
+                              : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {item.label}
+                          <ChevronDown className="w-4 h-4" />
+                          {/* Barra decorativa se está ativo */}
+                          {item.submenu.some(sub => isActiveRoute(sub.to)) && (
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                          )}
+                        </button>
+                        {/* Dropdown menu */}
+                        <div className="absolute left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible dropdown-container:hover dropdown-menu transition-all duration-200 z-50">
+                          <div className="py-2">
+                            {item.submenu.map((subItem) => (
+                              <Link
+                                key={subItem.to}
+                                to={subItem.to}
+                                className={`block px-4 py-2 text-sm transition-colors ${
+                                  isActiveRoute(subItem.to)
+                                    ? "text-blue-600 bg-blue-50 font-medium"
+                                    : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                                }`}
+                              >
+                                {subItem.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                        <style>{`
+                          .dropdown-container:hover .dropdown-menu {
+                            opacity: 1;
+                            visibility: visible;
+                          }
+                        `}</style>
+                      </div>
+                    ) : (
+                      // Item sem dropdown
+                      <Link
+                        to={item.to!}
+                        className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          isActiveRoute(item.to!)
+                            ? "text-blue-600 bg-blue-50 shadow-sm"
+                            : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        {item.label}
+                        {/* Barra decorativa se está ativo */}
+                        {isActiveRoute(item.to!) && (
+                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                        )}
+                      </Link>
+                    )}
                   </NavigationMenuItem>
                 ))}
               </NavigationMenuList>
@@ -147,31 +200,69 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Menu mobile (aparece só no mobile) W.I.P*/}
+          {/* Menu mobile (aparece só no mobile) */}
           <div
             className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-              isMobileMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+              isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
             <div className="border-t border-gray-200/50 bg-white/95 backdrop-blur-sm">
               <div className="px-2 pt-3 pb-4 space-y-2">
                 {navigationItems.map((item) => (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className={`relative flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      isActiveRoute(item.to)
-                        ? "text-blue-600 bg-blue-50 shadow-sm border-l-4 border-blue-600"
-                        : "text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-4 border-transparent"
-                    }`}
-                    onClick={closeMobileMenu}
-                  >
-                    <span className="flex-1">{item.label}</span>
-                    {/* Bolinha colorida se está ativo */}
-                    {isActiveRoute(item.to) && (
-                      <div className="w-2 h-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                  <div key={item.label}>
+                    {item.submenu ? (
+                      // Item com submenu
+                      <div>
+                        <button
+                          onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
+                          className={`relative flex items-center justify-between w-full px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                            item.submenu.some(sub => isActiveRoute(sub.to))
+                              ? "text-blue-600 bg-blue-50 shadow-sm border-l-4 border-blue-600"
+                              : "text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-4 border-transparent"
+                          }`}
+                        >
+                          <span>{item.label}</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform ${openDropdown === item.label ? 'rotate-180' : ''}`} />
+                        </button>
+                        {/* Submenu items */}
+                        <div className={`overflow-hidden transition-all duration-200 ${openDropdown === item.label ? 'max-h-48' : 'max-h-0'}`}>
+                          <div className="pl-4 pt-2 space-y-1">
+                            {item.submenu.map((subItem) => (
+                              <Link
+                                key={subItem.to}
+                                to={subItem.to}
+                                className={`block px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                                  isActiveRoute(subItem.to)
+                                    ? "text-blue-600 bg-blue-50 font-medium"
+                                    : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                                }`}
+                                onClick={closeMobileMenu}
+                              >
+                                {subItem.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      // Item sem submenu
+                      <Link
+                        to={item.to!}
+                        className={`relative flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          isActiveRoute(item.to!)
+                            ? "text-blue-600 bg-blue-50 shadow-sm border-l-4 border-blue-600"
+                            : "text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-4 border-transparent"
+                        }`}
+                        onClick={closeMobileMenu}
+                      >
+                        <span className="flex-1">{item.label}</span>
+                        {/* Bolinha colorida se está ativo */}
+                        {isActiveRoute(item.to!) && (
+                          <div className="w-2 h-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                        )}
+                      </Link>
                     )}
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>

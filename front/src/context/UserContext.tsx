@@ -33,12 +33,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 })
             ])
             .then(([userRes, rolesRes]) => {
-                setUser({
+                // Extrair roles da resposta correta
+                const roles = rolesRes.data.roles || rolesRes.data || [];
+                
+                const userData = {
                     ...userRes.data,
-                    roles: rolesRes.data.roles || []
-                });
+                    roles: roles
+                };
+                setUser(userData);
             })
-            .catch(() => setUser(null))
+            .catch((error) => {
+                console.error("Error fetching user data:", error);
+                setUser(null);
+            })
             .finally(() => setLoading(false));
         } else {
             setLoading(false);

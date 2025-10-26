@@ -42,20 +42,39 @@ export default function Login() {
         try {
             const token = await login({ email, password });
             localStorage.setItem("auth_token", token);
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
-                withCredentials: true,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json"
-                }
+            
+            // Buscar dados do usuário e roles
+            const [userRes, rolesRes] = await Promise.all([
+                axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json"
+                    }
+                }),
+                axios.get(`${import.meta.env.VITE_API_URL}/api/user/roles`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json"
+                    }
+                })
+            ]);
+            
+            // Extrair roles da resposta
+            const roles = rolesRes.data.roles || rolesRes.data || [];
+            
+            // Setar usuário com roles
+            setUser({
+                ...userRes.data,
+                roles: roles
             });
-            setUser(res.data);
+            
             navigate("/home");
-        } catch (error: any) {
+        } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 422) {
                 setError("Email ou Senha inválidos");
             } else {
-                setError(`Um erro inesperado ocorreu: ${error.message}`);
+                const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+                setError(`Um erro inesperado ocorreu: ${errorMessage}`);
                 console.log('erro: ', error);
             }
         }
