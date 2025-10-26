@@ -9,6 +9,7 @@ import {
 import axios from "axios";
 import Cookies from "js-cookie";
 import Notification from "./Notification";
+import { useUser } from "@/context/UserContext";
 
 // Define as rotas de navegação do menu
 interface NavigationItem {
@@ -16,19 +17,6 @@ interface NavigationItem {
   label: string;
   submenu?: { to: string; label: string }[];
 }
-
-const navigationItems: NavigationItem[] = [
-  { to: "/home", label: "Dashboard" },
-  { to: "/activities", label: "Atividades" },
-  { to: "/submissions", label: "Submissões" },
-  {
-    label: "Gerenciar",
-    submenu: [
-      { to: "/students", label: "Gerenciar Alunos" },
-      { to: "/teachers", label: "Gerenciar Professores" }
-    ]
-  },
-];
 
 export default function Header() {
   // Estado para controlar o menu mobile aberto/fechado
@@ -38,6 +26,27 @@ export default function Header() {
 
   // Hook para saber qual rota está ativa
   const location = useLocation();
+
+  // Hook para obter o usuário e suas roles
+  const { user } = useUser();
+
+  // Verifica se o usuário é admin
+  const isAdmin = user?.roles?.includes("admin") || false;
+
+  // Define os itens de navegação baseado nas permissões
+  const navigationItems: NavigationItem[] = [
+    { to: "/home", label: "Dashboard" },
+    { to: "/activities", label: "Atividades" },
+    { to: "/submissions", label: "Submissões" },
+    // Só mostra o item "Gerenciar" se o usuário for admin
+    ...(isAdmin ? [{
+      label: "Gerenciar",
+      submenu: [
+        { to: "/students", label: "Gerenciar Alunos" },
+        { to: "/teachers", label: "Gerenciar Professores" }
+      ]
+    }] : []),
+  ];
 
   // Alterna o menu mobile
   const toggleMobileMenu = () => {
