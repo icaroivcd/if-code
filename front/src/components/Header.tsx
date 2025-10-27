@@ -148,10 +148,11 @@ export default function Header() {
                       // Item com dropdown
                       <div className="relative dropdown-container">
                         <button
-                          className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center gap-1 ${item.submenu.some(sub => isActiveRoute(sub.to))
+                          className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center gap-1 ${
+                            item.submenu.some(sub => isActiveRoute(sub.to))
                               ? "text-blue-600 bg-blue-50 shadow-sm"
                               : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                            }`}
+                          }`}
                         >
                           {item.label}
                           <ChevronDown className="w-4 h-4" />
@@ -167,10 +168,11 @@ export default function Header() {
                               <Link
                                 key={subItem.to}
                                 to={subItem.to}
-                                className={`block px-4 py-2 text-sm transition-colors ${isActiveRoute(subItem.to)
+                                className={`block px-4 py-2 text-sm transition-colors ${
+                                  isActiveRoute(subItem.to)
                                     ? "text-blue-600 bg-blue-50 font-medium"
                                     : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                                  }`}
+                                }`}
                               >
                                 {subItem.label}
                               </Link>
@@ -188,10 +190,11 @@ export default function Header() {
                       // Item sem dropdown
                       <Link
                         to={item.to!}
-                        className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isActiveRoute(item.to!)
+                        className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          isActiveRoute(item.to!)
                             ? "text-blue-600 bg-blue-50 shadow-sm"
                             : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                          }`}
+                        }`}
                       >
                         {item.label}
                         {/* Barra decorativa se está ativo */}
@@ -228,7 +231,7 @@ export default function Header() {
                       <p className="text-sm font-medium text-gray-900">Meu Perfil</p>
                       <p className="text-xs text-gray-500 mt-1">Gerencie sua conta</p>
                     </div>
-
+                    
                     <div className="py-2">
                       <Link
                         to="/change-password"
@@ -238,7 +241,7 @@ export default function Header() {
                         <KeyRound className="w-4 h-4" />
                         <span>Alterar Senha</span>
                       </Link>
-
+                      
                       <button
                         onClick={() => {
                           setIsProfileMenuOpen(false);
@@ -277,69 +280,108 @@ export default function Header() {
 
           {/* Menu mobile (aparece só no mobile) */}
           <div
-            className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
               isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
-          <div className="border-t border-gray-200/50 bg-white/95 backdrop-blur-sm">
-            <div className="px-2 pt-3 pb-4 space-y-2">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`relative flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isActiveRoute(item.to)
-                      ? "text-blue-600 bg-blue-50 shadow-sm border-l-4 border-blue-600"
-                      : "text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-4 border-transparent"
-                    }`}
-                  onClick={closeMobileMenu}
-                >
-                  <span className="flex-1">{item.label}</span>
-                  {/* Bolinha colorida se está ativo */}
-                  {isActiveRoute(item.to) && (
-                    <div className="w-2 h-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
-                  )}
-                </Link>
-              ))}
-
-              {/* Menu de perfil no mobile */}
-              <div className="pt-2 mt-2 border-t border-purple-100">
-                <div className="px-4 py-3 rounded-lg mx-2 mb-3 border border-gray-200">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-purple-500 flex items-center justify-center shadow-md">
-                      <User className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Meu Perfil</p>
-                      <p className="text-xs text-gray-500">Gerencie sua conta</p>
+            <div className="border-t border-gray-200/50 bg-white/95 backdrop-blur-sm">
+              <div className="px-2 pt-3 pb-4 space-y-2">
+                {navigationItems.map((item) => (
+                  <div key={item.label}>
+                    {item.submenu ? (
+                      // Item com submenu
+                      <div>
+                        <button
+                          onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
+                          className={`relative flex items-center justify-between w-full px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                            item.submenu.some(sub => isActiveRoute(sub.to))
+                              ? "text-blue-600 bg-blue-50 shadow-sm border-l-4 border-blue-600"
+                              : "text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-4 border-transparent"
+                          }`}
+                        >
+                          <span>{item.label}</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform ${openDropdown === item.label ? 'rotate-180' : ''}`} />
+                        </button>
+                        {/* Submenu items */}
+                        <div className={`overflow-hidden transition-all duration-200 ${openDropdown === item.label ? 'max-h-48' : 'max-h-0'}`}>
+                          <div className="pl-4 pt-2 space-y-1">
+                            {item.submenu.map((subItem) => (
+                              <Link
+                                key={subItem.to}
+                                to={subItem.to}
+                                className={`block px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                                  isActiveRoute(subItem.to)
+                                    ? "text-blue-600 bg-blue-50 font-medium"
+                                    : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                                }`}
+                                onClick={closeMobileMenu}
+                              >
+                                {subItem.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      // Item sem submenu
+                      <Link
+                        to={item.to!}
+                        className={`relative flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                          isActiveRoute(item.to!)
+                            ? "text-blue-600 bg-blue-50 shadow-sm border-l-4 border-blue-600"
+                            : "text-gray-700 hover:text-blue-600 hover:bg-gray-50 border-l-4 border-transparent"
+                        }`}
+                        onClick={closeMobileMenu}
+                      >
+                        <span className="flex-1">{item.label}</span>
+                        {/* Bolinha colorida se está ativo */}
+                        {isActiveRoute(item.to!) && (
+                          <div className="w-2 h-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                        )}
+                      </Link>
+                    )}
+                  </div>
+                ))}
+                
+                {/* Menu de perfil no mobile */}
+                <div className="pt-2 mt-2 border-t border-purple-100">
+                  <div className="px-4 py-3 rounded-lg mx-2 mb-3 border border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-purple-500 flex items-center justify-center shadow-md">
+                        <User className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Meu Perfil</p>
+                        <p className="text-xs text-gray-500">Gerencie sua conta</p>
+                      </div>
                     </div>
                   </div>
+                  
+                  <Link
+                    to="/change-password"
+                    className="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    <KeyRound className="w-5 h-5" />
+                    <span>Alterar Senha</span>
+                  </Link>
+                  
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Sair</span>
+                  </button>
                 </div>
-
-                <Link
-                  to="/change-password"
-                  className="flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors"
-                  onClick={closeMobileMenu}
-                >
-                  <KeyRound className="w-5 h-5" />
-                  <span>Alterar Senha</span>
-                </Link>
-
-                <button
-                  onClick={() => {
-                    closeMobileMenu();
-                    handleLogout();
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 mx-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span>Sair</span>
-                </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </header >
+      </header>
     </>
   );
 }
