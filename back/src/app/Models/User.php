@@ -46,4 +46,32 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    /**
+     * Relacionamento: Um User tem um Aluno
+     */
+    public function aluno(): HasOne
+    {
+        return $this->hasOne(Aluno::class);
+    }
+
+    /**
+     * Relacionamento: Um User tem um Professor
+     */
+    public function professor(): HasOne
+    {
+        return $this->hasOne(Professor::class, 'id', 'id');
+    }
+
+    /**
+     * Boot method para garantir deleção em cascata
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($user) {
+            $user->aluno()->delete();
+            $user->professor()->delete();
+        });
+    }
 }
