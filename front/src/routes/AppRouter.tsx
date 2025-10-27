@@ -4,6 +4,7 @@ import ActivitiesDetails from "@/pages/activitiesDetails/ActivitiesDetails";
 import AppLayout from "@/pages/AppLayout";
 import Home from "@/pages/home/Home";
 import Login from "@/pages/login/Login";
+import ChangePassword from "@/pages/changePassword/ChangePassword";
 import RequireAuth from "@/pages/RequireAuth";
 import RequireRole from "@/pages/RequireRole";
 import Unauthorized from "@/pages/Unauthorized";
@@ -24,6 +25,7 @@ export default function AppRouter() {
             <Route index element={<App />} />
             <Route path="home" element={<Home />} />
             <Route element={<RequireRole allowedRoles={["student", "professor", "admin"]} />}>
+              <Route path="change-password" element={<ChangePassword />} />
               <Route path="activities">
                 <Route index element={<Activities />} />
                 <Route path=":id" element={<ActivitiesDetails />} />

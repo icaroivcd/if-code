@@ -74,6 +74,12 @@ export type LoginRequest = {
   password: string;
 }
 
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+  newPasswordConfirmation: string;
+}
+
 export type User = {
   id: number;
   name: string;
