@@ -30,7 +30,7 @@ class AlunoController extends Controller
             ->select('users.*') // Garante que estamos selecionando apenas os campos de users
             ->latest('users.created_at') // Especifica a tabela para evitar ambiguidade
             ->paginate(15);
-            
+
         return AlunoResource::collection($alunos);
     }
 
@@ -71,15 +71,18 @@ class AlunoController extends Controller
                 'email' => $validated['email'],
                 'password' => $validated['password'],
             ]);
-            
+
+            $user->assignRole('student');
+
             // Depois cria o Aluno
             Aluno::create([
                 'user_id' => $user->id,
                 'curso_id' => $validated['curso_id'],
                 'matricula' => $validated['matricula'] ?? null,
             ]);
-            
-            return $user;
+
+            // Retorna o usuário com os relacionamentos carregados
+            return $user->load('aluno.curso', 'roles', 'permissions');
         });
 
         return (new AlunoResource($user))
@@ -169,7 +172,7 @@ class AlunoController extends Controller
                 $userData['password'] = $validated['password'];
             }
             $aluno->update($userData);
-            
+
             // Atualiza dados do Aluno
             $alunoData = [];
             if ($request->has('curso_id')) {
