@@ -15,9 +15,9 @@ Vagrant.configure("2") do |config|
   
   # Recursos da máquina. São ajustáveis.
   config.vm.provider "virtualbox" do |vb|
-    vb.customize ["modifyvm", :id, "--memory", "4096"]
+    vb.customize ["modifyvm", :id, "--memory", "2048"]
     vb.cpus = 4
-    vb.name = "ambiente-ifcodes-ubuntu22"
+    vb.name = "ambiente-ifcodes-ubuntu22t"
     # vb.gui = true
   end
   

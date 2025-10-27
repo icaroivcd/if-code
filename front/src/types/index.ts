@@ -68,3 +68,45 @@ export type Page<T> = {
   pageSize: number;
   total: number;
 };
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+}
+
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+  newPasswordConfirmation: string;
+}
+
+export type User = {
+  id: number;
+  name: string;
+  email: string;
+  roles: string[];
+}
+export type Student = {
+  id: number;
+  name: string;
+  email: string;
+  matricula: string | number;
+  curso_id?: number;
+  curso?: {
+    id: number;
+    nome: string;
+  };
+  created_at?: string;
+  password?: string;
+  password_confirmation?: string;
+}
+
+export type Professor = {
+  id: number;
+  name: string;
+  email: string;
+  area_atuacao: string;
+  created_at?: string;
+  password?: string;
+  password_confirmation?: string;
+}
